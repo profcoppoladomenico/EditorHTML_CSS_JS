@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bottega</title>
+<meta name="description" content="Editor online di HTML, CSS e JavaScript con anteprima in tempo reale.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230A7564'/%3E%3Cpath d='M12 10l-5 6 5 6M20 10l5 6-5 6' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="vendor/codemirror/codemirror.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="brand"><span class="mark">&lt;/&gt;</span><span class="word">Bottega</span></div>
+  <div class="titlebox">
+    <input id="title" aria-label="Nome del progetto" value="Senza titolo" maxlength="80" autocomplete="off">
+    <div class="sub" id="status" data-s="saved"><span class="dot"></span><span id="statusText">Avvio…</span></div>
+  </div>
+  <div class="tools">
+    <span class="pill ro view-only">Sola lettura</span>
+    <button class="btn ghost t edit-only" id="newBtn" title="Nuovo progetto"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span class="lbl-t">Nuovo</span></button>
+    <button class="btn ghost t" id="listBtn" title="I miei progetti"><svg class="i" viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10H3z"/></svg><span class="lbl-t">Progetti</span></button>
+    <button class="btn ghost icon edit-only" id="libsBtn" title="Librerie esterne"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="18" cy="18" r="2"/></svg></button>
+    <button class="btn ghost icon" id="layoutBtn" title="Cambia disposizione"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 11h18"/></svg></button>
+    <button class="btn t" id="exportBtn" title="Scarica .html o .zip"><svg class="i" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span class="lbl-t">Scarica</span></button>
+    <button class="btn primary t edit-only" id="shareBtn" title="Condividi"><svg class="i" viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 10.9l7.6-3.8M8.2 13.1l7.6 3.8"/></svg><span class="lbl-t">Condividi</span></button>
+    <button class="btn primary view-only" id="copyBtn">Salva una copia</button>
+  </div>
+</header>
+<div class="banner" id="banner" hidden><span id="bannerText"></span></div>
+<nav class="tabs" role="tablist" aria-label="Pannelli">
+  <button role="tab" data-t="html" aria-selected="true">HTML</button>
+  <button role="tab" data-t="css" aria-selected="false">CSS</button>
+  <button role="tab" data-t="js" aria-selected="false">JS</button>
+  <button role="tab" data-t="out" aria-selected="false">Risultato</button>
+</nav>
+
+<main class="work" id="work">
+  <section class="eds">
+    <div class="pane" data-k="html"><div class="phead"><span class="lang h">HTML</span><span class="meta" id="m-html"></span></div><div class="cmwrap" id="ed-html"></div></div>
+    <div class="pane" data-k="css"><div class="phead"><span class="lang c">CSS</span><span class="meta" id="m-css"></span></div><div class="cmwrap" id="ed-css"></div></div>
+    <div class="pane" data-k="js"><div class="phead"><span class="lang j">JS</span><span class="meta" id="m-js"></span></div><div class="cmwrap" id="ed-js"></div></div>
+  </section>
+  <div class="split" id="split" role="separator" aria-label="Ridimensiona" tabindex="0"></div>
+  <section class="out">
+    <div class="phead">
+      <span class="ttl">Risultato</span>
+      <button class="btn ghost" id="runBtn" style="height:24px;padding:0 8px;margin-left:auto" title="Riesegui (Ctrl+Invio)"><svg class="i" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></svg>Riesegui</button>
+      <button class="btn ghost" id="consoleBtn" style="height:24px;padding:0 8px" aria-pressed="false">Console <span class="badge" id="errBadge" hidden>0</span></button>
+    </div>
+    <div class="frame"><iframe id="preview" title="Anteprima" sandbox="allow-scripts allow-modals allow-forms allow-popups"></iframe></div>
+    <div class="console" id="console" hidden>
+      <div class="phead"><span class="ttl">Console</span><button class="btn ghost" id="clearLogs" style="height:22px;padding:0 8px;margin-left:auto;font-size:12px">Pulisci</button></div>
+      <div class="logs" id="logs"></div>
+    </div>
+  </section>
+</main>
+
+<!-- I miei progetti -->
+<div class="scrim" id="listSheet" hidden>
+  <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="listH">
+    <div class="dhead"><h2 id="listH">I miei progetti</h2><button class="btn ghost icon" data-close title="Chiudi"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="dbody" style="flex:1">
+      <div class="row"><button class="btn primary" id="newBtn2"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Nuovo progetto</button><button class="btn" id="importBtn"><svg class="i" viewBox="0 0 24 24"><path d="M12 15V4M7 9l5-5 5 5M5 20h14"/></svg>Importa .zip o .html</button><input type="file" id="fileInput" accept=".zip,.html,.htm,application/zip,text/html" hidden></div>
+      <ul class="plist" id="plist"></ul>
+      <div class="note">I progetti sono salvati in automatico <b>in questo browser, su questo computer</b>. Per portarli altrove o tenerne una copia sicura, usa <b>Scarica</b>.</div>
+    </div>
+  </aside>
+</div>
+
+<!-- Condividi -->
+<div class="scrim center" id="shareSheet" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="shareH">
+    <div class="dhead"><h2 id="shareH">Condividi il progetto</h2><button class="btn ghost icon" data-close title="Chiudi"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="dbody">
+      <p>Il link contiene il codice del progetto così com'è adesso. Chi lo apre vede risultato e codice in sola lettura e può salvarne una copia nei propri progetti. Se modifichi ancora il progetto, crea un nuovo link.</p>
+      <div><label class="lbl" for="shareLink">Link</label><div class="row"><input class="field" id="shareLink" readonly><button class="btn primary" id="copyLink">Copia</button></div></div>
+      <div class="warn" id="shareWarn" hidden></div>
+    </div>
+  </div>
+</div>
+
+<!-- Scarica -->
+<div class="scrim center" id="exportSheet" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="exportH">
+    <div class="dhead"><h2 id="exportH">Scarica il progetto</h2><button class="btn ghost icon" data-close title="Chiudi"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="dbody">
+      <div class="choices">
+        <button class="choice" id="dlHtml"><span class="ext">.html</span><b>Pagina unica</b><span>Un solo file con HTML, CSS e JS dentro. Si apre con un doppio clic in qualsiasi browser.</span></button>
+        <button class="choice" id="dlZip"><span class="ext">.zip</span><b>Cartella del progetto</b><span>index.html, style.css e script.js separati, come in un sito vero. Si può reimportare in Bottega.</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Librerie -->
+<div class="scrim center" id="libsSheet" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="libsH">
+    <div class="dhead"><h2 id="libsH">Librerie esterne</h2><button class="btn ghost icon" data-close title="Chiudi"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="dbody">
+      <div><label class="lbl" for="jsLibs">JavaScript · un indirizzo per riga</label><textarea class="field" id="jsLibs" placeholder="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></textarea></div>
+      <div><label class="lbl" for="cssLibs">CSS · un indirizzo per riga</label><textarea class="field" id="cssLibs" placeholder="https://fonts.googleapis.com/css2?family=Fraunces&amp;display=swap"></textarea></div>
+      <p>Le librerie vengono caricate da internet, nell'anteprima e nei file scaricati.</p>
+    </div>
+    <div class="dfoot"><button class="btn" data-close>Annulla</button><button class="btn primary" id="saveLibs">Applica</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="vendor/codemirror/codemirror.js"></script>
+<script src="vendor/codemirror/mode/xml.js"></script>
+<script src="vendor/codemirror/mode/javascript.js"></script>
+<script src="vendor/codemirror/mode/css.js"></script>
+<script src="vendor/codemirror/mode/htmlmixed.js"></script>
+<script src="vendor/codemirror/addon/closebrackets.js"></script>
+<script src="vendor/codemirror/addon/xml-fold.js"></script>
+<script src="vendor/codemirror/addon/closetag.js"></script>
+<script src="vendor/codemirror/addon/matchbrackets.js"></script>
+<script src="vendor/jszip.min.js"></script>
+<script src="vendor/lz-string.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
